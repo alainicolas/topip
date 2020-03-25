@@ -11,6 +11,8 @@ Arguments:
   -file FILE  Your file to parse. Text file by default.
   
   -pcap       If set, will assume you are providing a pcap file, and decode it as text. 
+
+  -vlan	      If set, will search for vlan -Vlxxxx- instead of IP
   
   -top TOP    Number of top hits to display. 10 by default.
   

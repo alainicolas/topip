@@ -7,12 +7,14 @@ from collections import Counter
 parser = argparse.ArgumentParser(description='IP Top talker decoder')
 parser.add_argument("-file", required=True, type=str, help="Your text file to parse")
 parser.add_argument("-pcap", action="store_true", help="If set, will decode your pcap file to a text file")
+parser.add_argument("-vlan", action="store_true", help="If set, will search for vlan -Vlxxxx- instead of IP")
 parser.add_argument("-top", default=10, type=int, help="Number of top hits to display. 10 by default")
 
 #Load the parameters
 args = parser.parse_args()
 file = args.file
 pcap = args.pcap
+vlan = args.vlan
 top = args.top
 
 #If its a pcap file, decode it using tshark, parse it, delete de temp file
@@ -32,25 +34,34 @@ if pcap:
             ip_count[ip] += 1
 
         #Display the top IP
-        print(f'{"IP address":<20}{"hits"}')
+        print('{:<20}{}'.format("IP address", "hits"))
         for ip, count in ip_count.most_common(top):
-            print(f'{ip:<20}{count}')
+            print('{:<20}{}'.format(ip, count))
 
     #Deleting the temp text file
-    subprocess.call(["rm", "-f", "tmpFileIpTop.txt"])
+    subprocess.call(["rm", "-", "tmpFileIpTop.txt"])
 else:
     # If its not a pcap file, parse the file directly :
-    with open(file) as fp:
-        # Create a list of IP in a text file, with a counter
-        ip_count = Counter()
-        for ip in re.findall(r'(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)', fp.read()):
-            ip_count[ip] += 1
+    if vlan:
+        with open(file) as fp:
+            # Create a list of IP in a text file, with a counter
+            vlan_count = Counter()
+            for vlan in re.findall(r'(\bVl[0-9]{1,4}\b)', fp.read()):
+                vlan_count[vlan] += 1
 
-        # Display the top IP
-        print(f'{"IP address":<20}{"hits"}')
-        for ip, count in ip_count.most_common(top):
-            print(f'{ip:<20}{count}')
+            # Display the top IP
+            print('{:<20}{}'.format("VLAN ", "hits"))
+            for vlan, count in vlan_count.most_common(top):
+                print('{:<20}{}'.format(vlan, count))
+    else:
+        with open(file) as fp:
+            # Create a list of IP in a text file, with a counter
+            ip_count = Counter()
+            for ip in re.findall(r'(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)', fp.read()):
+                ip_count[ip] += 1
 
-
-
+            # Display the top IP
+            print('{:<20}{}'.format("IP address", "hits"))
+            for ip, count in ip_count.most_common(top):
+                print('{:<20}{}'.format(ip, count))
 
